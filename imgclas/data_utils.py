@@ -1,10 +1,10 @@
 """
 Miscellaneous functions manage data.
 
-Date: September 2018
-Author: Ignacio Heredia
-Email: iheredia@ifca.unican.es
-Github: ignacioheredia
+Date: November 2021
+Authors: Miriam Cobo, Ignacio Heredia
+Email: cobocano@ifca.unican.es, iheredia@ifca.unican.es
+Github: miriammmc, ignacioheredia
 """
 
 import os
@@ -29,7 +29,7 @@ def load_data_splits(splits_dir, im_dir, split_name='train'):
     """
     Load the data arrays from the [train/val/test].txt files.
     Lines of txt files have the following format:
-    'relative_path_to_image' 'image_label_number'
+    'absolute_path_to_image'*'image_label_number_in_mL'
 
     Parameters
     ----------
@@ -51,12 +51,12 @@ def load_data_splits(splits_dir, im_dir, split_name='train'):
 
     # Loading splits
     print("Loading {} data...".format(split_name))
-    split = np.genfromtxt(os.path.join(splits_dir, '{}.txt'.format(split_name)), dtype='str', delimiter=' ')
+    split = np.genfromtxt(os.path.join(splits_dir, '{}.txt'.format(split_name)), dtype='str', delimiter='*') ### previously: delimiter=' '
     X = np.array([os.path.join(im_dir, i) for i in split[:, 0]])
 
     #TODO Check this part of the code
     if len(split.shape) == 2:
-        y = split[:, 1].astype(np.int32)
+        y = split[:, 1].astype(np.float32)
     else: # maybe test file has not labels
         y = None
 
@@ -73,19 +73,6 @@ def mount_nextcloud(frompath, topath):
     if error:
         warnings.warn("Error while mounting NextCloud: {}".format(error))
     return output, error
-
-
-def load_class_names(splits_dir):
-    """
-    Load list of class names
-
-    Returns
-    -------
-    Numpy array of shape (N) containing strs with class names
-    """
-    print("Loading class names...")
-    class_names = np.genfromtxt(os.path.join(splits_dir, 'classes.txt'), dtype='str', delimiter='/n')
-    return class_names
 
 
 def load_class_info(splits_dir):
@@ -306,7 +293,7 @@ def resize_im(im, height, width):
     return resize_fn(image=im)['image']
 
 
-def data_generator(inputs, targets, batch_size, mean_RGB, std_RGB, preprocess_mode, aug_params, num_classes,
+def data_generator(inputs, targets, batch_size, mean_RGB, std_RGB, preprocess_mode, aug_params, ###num_classes,
                    im_size=224, shuffle=True):
     """
     Generator to feed Keras fit function
@@ -347,7 +334,8 @@ def data_generator(inputs, targets, batch_size, mean_RGB, std_RGB, preprocess_mo
             im = resize_im(im, height=im_size, width=im_size)
             batch_X.append(im)  # shape (N, 224, 224, 3)
         batch_X = preprocess_batch(batch=batch_X, mean_RGB=mean_RGB, std_RGB=std_RGB, mode=preprocess_mode)
-        batch_y = to_categorical(targets[excerpt], num_classes=num_classes)
+        batch_y = targets[excerpt]
+#         batch_y = to_categorical(targets[excerpt], num_classes=num_classes) ###
 
         yield batch_X, batch_y
 
@@ -394,7 +382,7 @@ class data_sequence(Sequence):
     TODO: Add sample weights on request
     """
 
-    def __init__(self, inputs, targets, batch_size, mean_RGB, std_RGB, preprocess_mode, aug_params, num_classes,
+    def __init__(self, inputs, targets, batch_size, mean_RGB, std_RGB, preprocess_mode, aug_params, #num_classes,
                  im_size=224, shuffle=True):
         """
         Parameters are the same as in the data_generator function
@@ -409,7 +397,7 @@ class data_sequence(Sequence):
         self.std_RGB = std_RGB
         self.preprocess_mode = preprocess_mode
         self.aug_params = aug_params
-        self.num_classes = num_classes
+#         self.num_classes = num_classes ###
         self.im_size = im_size
         self.shuffle = shuffle
         self.on_epoch_end()
@@ -433,7 +421,8 @@ class data_sequence(Sequence):
             batch_X.append(im)  # shape (N, 224, 224, 3)
             tmp_idxs.append(i)
         batch_X = preprocess_batch(batch=batch_X, mean_RGB=self.mean_RGB, std_RGB=self.std_RGB, mode=self.preprocess_mode)
-        batch_y = to_categorical(self.targets[tmp_idxs], num_classes=self.num_classes)
+        batch_y = self.targets[tmp_idxs]
+#         batch_y = to_categorical(self.targets[tmp_idxs], num_classes=self.num_classes) ###
         return batch_X, batch_y
 
     def on_epoch_end(self):
@@ -443,7 +432,7 @@ class data_sequence(Sequence):
             np.random.shuffle(self.indexes)
 
 
-def standard_tencrop_batch(im, crop_prop=0.9):
+def standard_tencrop_batch(im, crop_prop=0.95):
     """
     Returns an ordered ten crop batch of images from an original image (corners, center + mirrors).
 
@@ -505,7 +494,7 @@ class k_crop_data_sequence(Sequence):
     Each batch delivered is composed by multiple crops (default=10) of the same image.
     """
 
-    def __init__(self, inputs, mean_RGB, std_RGB, preprocess_mode, aug_params, crop_number=10, crop_mode='random',
+    def __init__(self, inputs, mean_RGB, std_RGB, preprocess_mode, aug_params, crop_number=30, crop_mode='random',
                  filemode='local', im_size=224):
         """
         Parameters are the same as in the data_generator function except for:
@@ -598,47 +587,10 @@ def compute_meanRGB(im_list, verbose=False, workers=4):
 
     print('Mean RGB pixel: {}'.format(mean.tolist()))
     print('Standard deviation of RGB pixel: {}'.format(std.tolist()))
+    with open(os.path.join(stats_dir, 'meanRGB.txt'), 'w') as outfile:
+        json.dump(stats, outfile, sort_keys=True, indent=4)
 
     return mean.tolist(), std.tolist()
-
-
-def compute_classweights(labels, max_dim=None, mode='balanced'):
-    """
-    Compute the class weights  for a set of labels to account for label imbalance.
-
-    Parameters
-    ----------
-    labels : numpy array, type (ints), shape (N)
-    max_dim : int
-        Maximum number of classes. Default is the max value in labels.
-    mode : str, {'balanced', 'log'}
-
-    Returns
-    -------
-    Numpy array, type (float32), shape (N)
-    """
-    if mode is None:
-        return None
-
-    weights = np.bincount(labels)
-    weights = np.sum(weights) / weights
-
-    # Fill the count if some high number labels are not present in the sample
-    if max_dim is not None:
-        diff = max_dim - len(weights)
-        if diff != 0:
-            weights = np.pad(weights, pad_width=(0, diff), mode='constant', constant_values=0)
-
-    # Transform according to different modes
-    if mode == 'balanced':
-        pass
-    elif mode == 'log':
-        # do not use --> produces numerical instabilities at inference when transferring weights trained on GPU to CPU
-        weights = np.log(weights) # + 1
-    else:
-        raise ValueError('{} is not a valid option for parameter "mode"'.format(mode))
-
-    return weights.astype(np.float32)
 
 
 def json_friendly(d):

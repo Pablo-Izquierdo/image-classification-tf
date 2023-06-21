@@ -1,10 +1,10 @@
 """
 Miscellaneous functions for test time.
 
-Date: September 2018
-Author: Ignacio Heredia
-Email: iheredia@ifca.unican.es
-Github: ignacioheredia
+Date: November 2021
+Authors: Miriam Cobo, Ignacio Heredia
+Email: cobocano@ifca.unican.es, iheredia@ifca.unican.es
+Github: miriammmc, ignacioheredia
 """
 
 import numpy as np
@@ -12,7 +12,7 @@ import numpy as np
 from imgclas.data_utils import k_crop_data_sequence
 
 
-def predict(model, X, conf, top_K=None, crop_num=10, filemode='local', merge=False, use_multiprocessing=False):
+def predict(model, X, conf, crop_num=30, filemode='local', merge=False, use_multiprocessing=False):
     """
     Predict function.
 
@@ -25,7 +25,7 @@ def predict(model, X, conf, top_K=None, crop_num=10, filemode='local', merge=Fal
     conf: dict
         Configuration parameters. The data augmentation parameters that will be used in the inference can be changed in
         conf['augmentation']['val_mode'].
-    top_k : int
+    top_k : int ### for classification?
         Number of top predictions to return. If None, all predictions will be returned.
     crop_num: int
         Number of crops to use for test. Default is 10.
@@ -45,8 +45,6 @@ def predict(model, X, conf, top_K=None, crop_num=10, filemode='local', merge=Fal
             Array of predicted probabilities
     """
 
-    if top_K is None:
-        top_K = conf['model']['num_classes']
     if type(X) is str: #if not isinstance(X, list):
         X = [X]
 
@@ -66,25 +64,25 @@ def predict(model, X, conf, top_K=None, crop_num=10, filemode='local', merge=Fal
                            workers=4,
                            use_multiprocessing=use_multiprocessing)
 
-    output = output.reshape(len(X), -1, output.shape[-1])  # reshape to (N, crop_number, num_classes)
+    output = output.reshape(len(X), -1)
     output = np.mean(output, axis=1)  # take the mean across the crops
 
     if merge:
-        output = np.mean(output, axis=0)  # take the mean across the images
-        lab = np.argsort(output)[::-1]  # sort labels in descending prob
-        lab = lab[:top_K]  # keep only top_K labels
-        lab = np.expand_dims(lab, axis=0)  # add extra dimension to make to output have a shape (1, top_k)
-        prob = output[lab]
+        output = np.mean(output, axis=0)  # take the mean across the images ###?
+        result = output  ### for regression
+#         lab = lab[:top_K]  # keep only top_K labels
+#         lab = np.expand_dims(lab, axis=0)  # add extra dimension to make to output have a shape (1, top_k)
+#         prob = output[lab]
     else:
-        lab = np.argsort(output, axis=1)[:, ::-1]  # sort labels in descending prob
-        lab = lab[:, :top_K]  # keep only top_K labels
-        prob = output[np.repeat(np.arange(len(lab)), lab.shape[1]),
-                      lab.flatten()].reshape(lab.shape)  # retrieve corresponding probabilities
+        result = output  # sort labels in descending prob
+#         lab = lab[:, :top_K]  # keep only top_K labels
+#         prob = output[np.repeat(np.arange(len(lab)), lab.shape[1]),
+#                       lab.flatten()].reshape(lab.shape)  # retrieve corresponding probabilities
 
-    return lab, prob
+    return result
 
 
-def topK_accuracy(true_lab, pred_lab, K=1):
+def topK_accuracy(true_lab, pred_lab, K=1): ### not used for regression tasks
     """
     Compute the top_K accuracy
 

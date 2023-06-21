@@ -36,7 +36,7 @@ from tensorflow.keras import backend as K
 from webargs import fields
 
 from imgclas import paths, utils, config, test_utils
-from imgclas.data_utils import load_class_names, load_class_info, mount_nextcloud
+from imgclas.data_utils import load_class_info, mount_nextcloud
 from imgclas.train_runfile import train_fn
 
 
@@ -115,17 +115,17 @@ def load_inference_model(timestamp=None, ckpt_name=None):
 
     # Load the class names and info
     splits_dir = paths.get_ts_splits_dir()
-    class_names = load_class_names(splits_dir=splits_dir)
+    #class_names = load_class_names(splits_dir=splits_dir)
     class_info = None
-    if 'info.txt' in os.listdir(splits_dir):
-        class_info = load_class_info(splits_dir=splits_dir)
-        if len(class_info) != len(class_names):
-            warnings.warn("""The 'classes.txt' file has a different length than the 'info.txt' file.
-            If a class has no information whatsoever you should leave that classes row empty or put a '-' symbol.
-            The API will run with no info until this is solved.""")
-            class_info = None
-    if class_info is None:
-        class_info = ['' for _ in range(len(class_names))]
+    #if 'info.txt' in os.listdir(splits_dir):
+    #    class_info = load_class_info(splits_dir=splits_dir)
+    #    if len(class_info) != len(class_names):
+    #        warnings.warn("""The 'classes.txt' file has a different length than the 'info.txt' file.
+    #        If a class has no information whatsoever you should leave that classes row empty or put a '-' symbol.
+    #        The API will run with no info until this is solved.""")
+    #        class_info = None
+    #if class_info is None:
+    #    class_info = ['' for _ in range(len(class_names))]
 
     # Load training configuration
     conf_path = os.path.join(paths.get_conf_dir(), 'conf.json')
@@ -266,14 +266,13 @@ def predict_url(args):
         conf = config.conf_dict
 
     # Make the predictions
-    with graph.as_default():
-        pred_lab, pred_prob = test_utils.predict(model=model,
-                                                 X=args['urls'],
-                                                 conf=conf,
-                                                 top_K=top_K,
-                                                 filemode='url',
-                                                 merge=merge,
-                                                 use_multiprocessing=False)  # safer to avoid memory fragmentation in failed queries
+    predicction = test_utils.predict(model=model,
+                                         X=args['urls'],
+                                         conf=conf,
+                                         #top_K=top_K,
+                                         filemode='url',
+                                         merge=merge,
+                                         use_multiprocessing=True)  # safer to avoid memory fragmentation in failed queries
 
     if merge:
         pred_lab, pred_prob = np.squeeze(pred_lab), np.squeeze(pred_prob)
@@ -285,40 +284,46 @@ def predict_data(args):
     """
     Function to predict an image in binary format
     """
-    # Check user configuration
+   # Check user configuration
     update_with_query_conf(args)
+    # Load training configuration
     conf = config.conf_dict
-
-    merge = True
-    catch_localfile_error(args['files'])
-
-    # Load model if needed
     if loaded_ts != conf['testing']['timestamp'] or loaded_ckpt != conf['testing']['ckpt_name']:
         load_inference_model(timestamp=conf['testing']['timestamp'],
                              ckpt_name=conf['testing']['ckpt_name'])
         conf = config.conf_dict
+    catch_localfile_error(args['files'])
+    
+    #Load the model
+    model = load_model(os.path.join(paths.get_checkpoints_dir(), loaded_ckpt),
+                       custom_objects=utils.get_custom_objects(), compile=False)
 
     # Create a list with the path to the images
     filenames = [f.filename for f in args['files']]
 
     # Make the predictions
+    merge = True
     try:
-        with graph.as_default():
-            pred_lab, pred_prob = test_utils.predict(model=model,
-                                                     X=filenames,
-                                                     conf=conf,
-                                                     top_K=top_K,
-                                                     filemode='local',
-                                                     merge=merge,
-                                                     use_multiprocessing=False)  # safer to avoid memory fragmentation in failed queries
+        predicction = test_utils.predict(model=model,
+                                                 X=filenames,
+                                                 conf=conf,
+                                                 #top_K=top_K,
+                                                 filemode='local',
+                                                 merge=merge,
+                                                 use_multiprocessing=True)  # safer to avoid memory fragmentation in failed queries
+    except Exception as e:
+        print("Unexpected error:", e)
     finally:
+        #remove tmp file
         for f in filenames:
             os.remove(f)
+        K.clear_session()
+    K.clear_session()
+    pred = {'Peso (g)': [float(predicction)]}
+    #if merge:
+    #    pred_lab, pred_prob = np.squeeze(pred_lab), np.squeeze(pred_prob)
 
-    if merge:
-        pred_lab, pred_prob = np.squeeze(pred_lab), np.squeeze(pred_prob)
-
-    return format_prediction(pred_lab, pred_prob)
+    return pred
 
 
 def format_prediction(labels, probabilities):

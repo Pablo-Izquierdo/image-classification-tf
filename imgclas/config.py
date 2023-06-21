@@ -1,10 +1,10 @@
 """
 Configuration script of the image classification application. It load configuration from a YAML file.
 
-Date: September 2018
-Author: Ignacio Heredia
-Email: iheredia@ifca.unican.es
-Github: ignacioheredia
+Date: November 2021
+Authors: Miriam Cobo, Ignacio Heredia
+Email: cobocano@ifca.unican.es, iheredia@ifca.unican.es
+Github: miriammmc, ignacioheredia
 """
 
 import os
@@ -14,7 +14,7 @@ import builtins
 import yaml
 
 homedir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-conf_path = os.path.join(homedir, 'etc', 'config.yaml')
+conf_path = os.path.join(homedir, 'etc', 'config-r.yaml')
 with open(conf_path, 'r') as f:
     CONF = yaml.safe_load(f)
 

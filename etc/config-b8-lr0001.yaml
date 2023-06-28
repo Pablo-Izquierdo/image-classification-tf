@@ -102,7 +102,7 @@ training:
       not finetuned to our dataset.
 
   initial_lr:
-    value: 0.001
+    value: 0.0001
     type: "float"
     help: >
           Initial learning rate.
@@ -116,7 +116,7 @@ training:
           your batchsize so that the model still fits in the GPU.
 
   epochs:
-    value: 1
+    value: 20
     type: "int"
     range: [0, None]
     help: >

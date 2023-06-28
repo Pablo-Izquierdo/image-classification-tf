@@ -93,7 +93,7 @@ def train_fn(TIMESTAMP, CONF):
                               std_RGB=CONF['dataset']['std_RGB'],
                               preprocess_mode=CONF['model']['preprocess_mode'],
                               aug_params=CONF['augmentation']['train_mode'])
-    train_steps = int((np.ceil(len(X_train)/CONF['training']['batch_size']))/3)
+    train_steps = int((np.ceil(len(X_train)/CONF['training']['batch_size'])))
 
     if CONF['training']['use_validation']:
         val_gen = data_sequence(X_val, y_val,
@@ -104,7 +104,8 @@ def train_fn(TIMESTAMP, CONF):
                                 std_RGB=CONF['dataset']['std_RGB'],
                                 preprocess_mode=CONF['model']['preprocess_mode'],
                                 aug_params=CONF['augmentation']['val_mode'])
-        val_steps = int((np.ceil(len(X_val)/CONF['training']['batch_size']))/3)
+        val_steps = int((np.ceil(len(X_val)/CONF['training']['batch_size'])))
+        
     else:
         val_gen = None
         val_steps = None
@@ -151,7 +152,8 @@ def train_fn(TIMESTAMP, CONF):
              'training time (s)': round(time.time()-t0, 2),
              'timestamp': TIMESTAMP,
              'mean RGB pixel': CONF['dataset']['mean_RGB'],
-             'standard deviation of RGB pixel': CONF['dataset']['std_RGB']}
+             'standard deviation of RGB pixel': CONF['dataset']['std_RGB'],
+             'batch_size': CONF['training']['batch_size']}
     stats.update(history.history)
     stats = json_friendly(stats)
     stats_dir = paths.get_stats_dir()
@@ -173,9 +175,35 @@ def train_fn(TIMESTAMP, CONF):
     print('Finished')
 
 
+    
+import yaml
+import sys
+
 if __name__ == '__main__':
+    '''
+        Arguments : Config file name.
+        Not argument: takes config-r.yaml as default config file name
+    '''
+    n = len(sys.argv)
+    if n > 1:
+        if n > 2:
+            raise Exception("Too many arguments, allowed only 1 arguments (config file name). or no arguments (config-r.yaml as default config file name)")
 
-    CONF = config.get_conf_dict()
+        homedir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        conf_path = os.path.join(homedir, 'etc', str(sys.argv[1]))
+        with open(conf_path, 'r') as f:
+            CONF = yaml.safe_load(f)
+            
+        CONF = config.get_conf_dict(CONF)
+    else:
+        CONF = config.get_conf_dict()
+        
+    print(CONF)
     timestamp = datetime.now().strftime('%Y-%m-%d_%H%M%S')
-
     train_fn(TIMESTAMP=timestamp, CONF=CONF)
+        
+        
+    #ORIGINAL EXECUTION
+    #CONF = config.get_conf_dict(CONF)
+    #timestamp = datetime.now().strftime('%Y-%m-%d_%H%M%S')
+    #train_fn(TIMESTAMP=timestamp, CONF=CONF)

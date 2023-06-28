@@ -587,8 +587,6 @@ def compute_meanRGB(im_list, verbose=False, workers=4):
 
     print('Mean RGB pixel: {}'.format(mean.tolist()))
     print('Standard deviation of RGB pixel: {}'.format(std.tolist()))
-    with open(os.path.join(stats_dir, 'meanRGB.txt'), 'w') as outfile:
-        json.dump(stats, outfile, sort_keys=True, indent=4)
 
     return mean.tolist(), std.tolist()
 

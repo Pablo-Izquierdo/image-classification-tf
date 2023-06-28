@@ -108,7 +108,7 @@ training:
           Initial learning rate.
 
   batch_size:
-    value: 8
+    value: 4
     type: "int"
     range: [1, 64]
     help: >
@@ -116,7 +116,7 @@ training:
           your batchsize so that the model still fits in the GPU.
 
   epochs:
-    value: 1
+    value: 20
     type: "int"
     range: [0, None]
     help: >
@@ -153,7 +153,7 @@ training:
           will be decay at 70% and 90% of total number of epochs.
 
   l2_reg:
-    value: 0.0001
+    value: 0.001
     type: "float"
     help: >
           L2 regularizer for the two last Dense layers.

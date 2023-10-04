@@ -19,7 +19,7 @@ from tensorflow.keras.models import load_model, Model
 from tensorflow.python.saved_model import builder as saved_model_builder
 from tensorflow.python.saved_model.signature_def_utils import predict_signature_def
 from tensorflow.python.saved_model import tag_constants
-from tensorflow.keras.layers import Dense, GlobalAveragePooling2D, Flatten
+from tensorflow.keras.layers import Dense, GlobalAveragePooling2D, Flatten, Dropout
 
 from imgclas import paths, config, utils
 
@@ -47,6 +47,7 @@ def create_model(CONF):
     x = base_model.output
     x = GlobalAveragePooling2D()(x)
     # x = Flatten()(x) #might work better on large dataset than GlobalAveragePooling https://github.com/keras-team/keras/issues/8470
+    x = Dropout(0.1)(x)
     x = Dense(1024,
               activation='relu')(x)
     predictions = Dense(1, activation='linear')(x) ### for regression

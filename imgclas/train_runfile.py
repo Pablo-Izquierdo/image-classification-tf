@@ -36,7 +36,7 @@ from imgclas.data_utils import load_data_splits, compute_meanRGB, data_sequence,
     json_friendly
 from imgclas import paths, config, model_utils, utils
 from imgclas.optimizers import customAdam
-
+import imgclas.cross_validation
 
 # Set Tensorflow verbosity logs
 tf.logging.set_verbosity(tf.logging.ERROR)
@@ -135,7 +135,8 @@ def train_fn(TIMESTAMP, CONF):
                   loss='mean_squared_error',
                   metrics=['mae']) ### for regression
 
-    history = model.fit_generator(generator=train_gen,
+    if not CONF['training']['use_cross_validation']:
+        history = model.fit_generator(generator=train_gen,
                                   steps_per_epoch=train_steps,
                                   epochs=CONF['training']['epochs'],
                                   validation_data=val_gen,
@@ -145,32 +146,55 @@ def train_fn(TIMESTAMP, CONF):
                                   use_multiprocessing=CONF['training']['use_multiprocessing'],
                                   initial_epoch=0)
     
-    # Saving everything
-    print('Saving data to {} folder.'.format(paths.get_timestamped_dir()))
-    print('Saving training stats ...')
-    stats = {'epoch': history.epoch,
-             'training time (s)': round(time.time()-t0, 2),
-             'timestamp': TIMESTAMP,
-             'mean RGB pixel': CONF['dataset']['mean_RGB'],
-             'standard deviation of RGB pixel': CONF['dataset']['std_RGB'],
-             'batch_size': CONF['training']['batch_size']}
-    stats.update(history.history)
-    stats = json_friendly(stats)
-    stats_dir = paths.get_stats_dir()
-    with open(os.path.join(stats_dir, 'stats.json'), 'w') as outfile:
-        json.dump(stats, outfile, sort_keys=True, indent=4)
+        # Saving everything
+        print('Saving data to {} folder.'.format(paths.get_timestamped_dir()))
+        print('Saving training stats ...')
+        stats = {'epoch': history.epoch,
+                 'training time (s)': round(time.time()-t0, 2),
+                 'timestamp': TIMESTAMP,
+                 'mean RGB pixel': CONF['dataset']['mean_RGB'],
+                 'standard deviation of RGB pixel': CONF['dataset']['std_RGB'],
+                 'batch_size': CONF['training']['batch_size']}
+        stats.update(history.history)
+        stats = json_friendly(stats)
+        stats_dir = paths.get_stats_dir()
+        with open(os.path.join(stats_dir, 'stats.json'), 'w') as outfile:
+            json.dump(stats, outfile, sort_keys=True, indent=4)
 
-    print('Saving the configuration ...')
-    model_utils.save_conf(CONF)
+        print('Saving the configuration ...')
+        model_utils.save_conf(CONF)
 
-    print('Saving the model to h5...')
-    fpath = os.path.join(paths.get_checkpoints_dir(), 'final_model.h5')
-    model.save(fpath,
-               include_optimizer=True)
+        print('Saving the model to h5...')
+        fpath = os.path.join(paths.get_checkpoints_dir(), 'final_model.h5')
+        model.save(fpath,
+                   include_optimizer=True)
 
-    # print('Saving the model to protobuf...')
-    # fpath = os.path.join(paths.get_checkpoints_dir(), 'final_model.proto')
-    # model_utils.save_to_pb(model, fpath)
+        # print('Saving the model to protobuf...')
+        # fpath = os.path.join(paths.get_checkpoints_dir(), 'final_model.proto')
+        # model_utils.save_to_pb(model, fpath)
+    
+    else:
+        # Cross-Validation
+        X, y = split_data_cross_validation(splits_dir=paths.get_ts_splits_dir(),
+                                        im_dir=paths.get_images_dir())
+        
+        kwargs = {
+            "TIMESTAMP": TIMESTAMP,
+            "CONF": CONF,
+            "validation_data":None,
+            "validation_steps":None,
+            "callbacks":utils.get_callbacks(CONF),
+            "verbose":1, 
+            "max_queue_size":5,
+            "workers":4,
+            "initial_epoch":0}
+        
+        modelcv = cross_val_model(model)
+        # Evaluate using 10-fold Cross Validation
+        kfold = GroupKFold(n_splits=3)
+        results = cross_val_score(modelcv, X, y, groups=y, cv=kfold, fit_params=kwargs)
+        print("Baseline: %.2f%% (%.2f%%)" % (results.mean()*100, results.std()*100))
+    
 
     print('Finished')
 

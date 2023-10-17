@@ -184,6 +184,12 @@ training:
           Whether to use or not multiple workers to do preprocess data (ie. do data augmentation)
           faster during training. Disable it if your computing resources are scarce.
 
+
+  use_cross_validation:
+    value: False
+    type: "bool"
+    help: > 
+          Whether to use or not cross validation. If True you have to provide a `dataset.txt` file in the `splits` directory.
 #####################################################
 #  Options about monitoring your training
 #####################################################

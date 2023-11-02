@@ -44,12 +44,11 @@ def split_data_cross_validation(splits_dir, im_dir, split_name='dataset'):
     for d,l in zip(X, y): # Para cada directorio
         for img in os.listdir(d): # Para cada imagen
             path = d + img
+            print(path)
             # Load images
             data = load_image(path)
             imagenes.append(data)
             label.append(l)
-            break
-    
     
     imagenes = np.array(imagenes)
     label = np.array(label)
@@ -58,6 +57,15 @@ def split_data_cross_validation(splits_dir, im_dir, split_name='dataset'):
 class cross_val_model:
     def __init__(self, model):
         self.model = model
+        
+    def get_params(self, deep=True):
+    # suppose this estimator has parameters "alpha" and "recursive"
+        return {"model": self.model}
+    
+    def set_params(self, **parameters):
+        for parameter, value in parameters.items():
+            setattr(self, parameter, value)
+        return self
     
     def predict(self, X, y):
         
@@ -74,7 +82,7 @@ class cross_val_model:
         '''
         #TODO: revisar como hacer predict para ver cual es mejor
         # Predict
-        pred_result = predict(model, X, conf, filemode='local')
+        pred_result = predict(self.model, X, conf, filemode='local')
 
         # Save the predictions
         pred_dict = {'filenames': list(X),
@@ -108,7 +116,7 @@ class cross_val_model:
         train_steps = int((np.ceil(len(X_train)/kwargs['CONF']['training']['batch_size'])))
         
         # ENTRENAMIENTO
-        history = model.fit_generator(generator=train_gen,
+        history = self.model.fit_generator(generator=train_gen,
                                   steps_per_epoch=train_steps,
                                   epochs=kwargs['CONF']['training']['epochs'],
                                   validation_data=kwargs["validation_data"],
@@ -140,7 +148,7 @@ class cross_val_model:
 
         print('Saving the model to h5...')
         fpath = os.path.join(paths.get_checkpoints_dir(), 'final_model.h5')
-        model.save(fpath,
+        self.model.save(fpath,
                    include_optimizer=True)
         
         
@@ -150,4 +158,4 @@ class cross_val_model:
         return {'l':self.l}
     '''
 
-split_data_cross_validation("/srv/image-classification-tf/models/2023-09-14_105236/dataset_files/", paths.get_images_dir())
+#split_data_cross_validation("/srv/image-classification-tf/models/2023-09-14_105236/dataset_files/", paths.get_images_dir())

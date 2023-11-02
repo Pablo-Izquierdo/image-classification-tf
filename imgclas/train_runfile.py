@@ -36,7 +36,8 @@ from imgclas.data_utils import load_data_splits, compute_meanRGB, data_sequence,
     json_friendly
 from imgclas import paths, config, model_utils, utils
 from imgclas.optimizers import customAdam
-import imgclas.cross_validation
+from imgclas.cross_validation import split_data_cross_validation, cross_val_model
+from sklearn.model_selection import GroupKFold, cross_val_score
 
 # Set Tensorflow verbosity logs
 tf.logging.set_verbosity(tf.logging.ERROR)
@@ -192,7 +193,7 @@ def train_fn(TIMESTAMP, CONF):
         modelcv = cross_val_model(model)
         # Evaluate using 10-fold Cross Validation
         kfold = GroupKFold(n_splits=3)
-        results = cross_val_score(modelcv, X, y, groups=y, cv=kfold, fit_params=kwargs)
+        results = cross_val_score(modelcv, X, y, groups=y, cv=kfold, fit_params=kwargs, scoring = 'neg_mean_absolute_error')
         print("Baseline: %.2f%% (%.2f%%)" % (results.mean()*100, results.std()*100))
     
 

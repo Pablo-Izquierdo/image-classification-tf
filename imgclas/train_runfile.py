@@ -263,7 +263,7 @@ def train_fn(TIMESTAMP, CONF):
             model_utils.save_conf(CONF)
 
             print('Saving the model to h5...')
-            fpath = os.path.join(paths.get_checkpoints_dir(), 'final_model.h5')
+            fpath = os.path.join(paths.get_checkpoints_dir(), f'Fold-{fold_iter}/final_model.h5')
             model.save(fpath,
                        include_optimizer=True)
 

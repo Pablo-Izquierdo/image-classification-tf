@@ -169,8 +169,9 @@ def get_callbacks(CONF, use_lr_decay=True, fold_iter=0):
 
     if CONF['training']['ckpt_freq'] is not None:
         if CONF['training']['use_cross_validation']:
+            fold = f"Fold-{fold_iter}/"
             calls.append(callbacks.ModelCheckpoint(
-                os.path.join(paths.get_checkpoints_dir(), f'Fold-{fold_iter}/epoch-{epoch:02d}.hdf5'),
+                os.path.join(paths.get_checkpoints_dir(), fold+'epoch-{epoch:02d}.hdf5'),
                 verbose=1,
                 period=max(1, int(CONF['training']['ckpt_freq'] * CONF['training']['epochs']))))
         else:

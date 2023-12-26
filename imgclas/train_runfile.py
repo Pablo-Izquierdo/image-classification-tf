@@ -86,7 +86,7 @@ def train_fn(TIMESTAMP, CONF):
         # Compute the mean and std RGB values
         if CONF['dataset']['mean_RGB'] is None:
             CONF['dataset']['mean_RGB'], CONF['dataset']['std_RGB'] = compute_meanRGB(X_train)
-
+        
         #Create data generator for train and val sets
         train_gen = data_sequence(X_train, y_train,
                                   batch_size=CONF['training']['batch_size'],

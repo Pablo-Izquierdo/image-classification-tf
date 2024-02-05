@@ -39,7 +39,7 @@ general:
 model:
 
   modelname:
-      value: "VGG16"
+      value: "VGG19"
       type: "str"
       choices: ["DenseNet121", "DenseNet169", "DenseNet201", "InceptionResNetV2", "InceptionV3", "MobileNet",
                "NASNetMobile", "Xception", "ResNet50", "VGG16", "VGG19"]
@@ -69,7 +69,7 @@ model:
 
 dataset:
   mean_RGB:
-    value: [155.7963989816131, 150.62531473852948, 142.49572551276907]
+    value:
     type: "list"
     help: >
           Mean RGB value of the image dataset. If not provided it will be automatically computed before the training
@@ -78,7 +78,7 @@ dataset:
           Example: [122.4, 142.6, 113.8]
 
   std_RGB:
-    value: [44.10393220227142, 46.32262718642306, 54.67092409057792]
+    value:
     type: "list"
     help: >
           Standard deviation of the RGB value of the image dataset. It is actually not needed for training.
@@ -166,7 +166,7 @@ training:
 #           classes are very imbalanced although it can make training more unstable.
 
   use_validation:
-    value: False
+    value: True
     type: "bool"
     help: >
           Whether to use or not validation. If True you have to provide a `val.txt` file in the `splits` directory.

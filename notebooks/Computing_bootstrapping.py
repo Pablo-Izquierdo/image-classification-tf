@@ -11,16 +11,18 @@ from imgclas import paths, plot_utils, utils
 
 
 # User parameters to set
-TIMESTAMP = '2024-01-28_213117'                       # timestamp of the model
-for i in range(1,22):
-    if i < 10:
-        MODEL_NAME = f'epoch-0{i}.hdf5'
-    elif i == 21:
-        MODEL_NAME = 'final_model.h5' 
-    else:
-        MODEL_NAME = f'epoch-{i}.hdf5'
-    #MODEL_NAME = 'final_model.h5'                           # model to use to make the prediction
-    print(f'Executing... {MODEL_NAME}')
+TIMESTAMP = '2024-02-01_115602'                       # timestamp of the model
+MODEL_NAME = 'epoch-20.hdf5'
+
+
+try:
+    os.mkdir(f'/srv/image-classification-tf/models/{TIMESTAMP}/predictions/bootstrapping-epoch-20/')
+except Exception as e:
+    print("directory exits")
+
+for sample in os.listdir('/srv/image-classification-tf/models/2024-02-01_115602/dataset_files/bootstrapping'): 
+   
+    print(f'Executing... {sample}')
     # Set the timestamp
     paths.timestamp = TIMESTAMP
 
@@ -37,11 +39,11 @@ for i in range(1,22):
 
     
     
-    SPLIT_NAME = 'test'                          # data split to use 
+    SPLIT_NAME = sample.split('.')[0]                         # data split to use 
     # Load the data
     X, y = load_data_splits(splits_dir=paths.get_ts_splits_dir(),
                             im_dir=conf['general']['images_directory'],
-                            split_name=SPLIT_NAME)
+                            split_name=f'bootstrapping/'+SPLIT_NAME)
 
     # Predict
     pred_result = predict(model, X, conf, filemode='local')
@@ -52,6 +54,6 @@ for i in range(1,22):
     if y is not None:
         pred_dict['true_value'] = y.tolist()
 
-    pred_path = os.path.join(paths.get_predictions_dir(), '{}+{}.json'.format(MODEL_NAME, SPLIT_NAME))
+    pred_path = os.path.join(paths.get_predictions_dir()+f'/bootstrapping-epoch-20/', '{}.json'.format(SPLIT_NAME))
     with open(pred_path, 'w') as outfile:
         json.dump(pred_dict, outfile, sort_keys=True)

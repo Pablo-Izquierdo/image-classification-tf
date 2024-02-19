@@ -5,6 +5,7 @@ DEEP Open Catalogue: Image classification
 
 
 **Author:** [Pablo Izquierdo](https://github.com/Pablo-Izquierdo) (CSIC)
+
 **Description:** This work provides a tool to train and evaluate an image regression model. The code has been modified to predict apple weights as part of the Master's thesis related to the DigitalAlimenta project.
 
 This work is an adaptation of the original [BrainGut-WineUp](https://alimenta365.csic.es/) project It was developed by [Miriam Cobo](https://github.com/MiriamCobo) (CSIC). You can find more information about it in the [Github Repository](https://github.com/MiriamCobo/BrainGut-WineUp).

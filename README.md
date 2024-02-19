@@ -22,7 +22,7 @@ You can have more info on how to interact directly with the module by examining 
     
    * [bootstrap samples notebook](./notebooks/1.0.1-Bootstrapping_samples_generator.ipynb): Generate Bootstrap samples
 
-   * [Check sets distribution notebook](./notebooks/1.1-Check_Sets_distribution.ipynb): Visualize Data Splits.
+   * [check sets distribution notebook](./notebooks/1.1-Check_Sets_distribution.ipynb): Visualize Data Splits.
 
    * [model training notebook](./notebooks/2.0-Model_training.ipynb): Visualize training and validation model statistics.
 

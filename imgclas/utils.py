@@ -20,6 +20,7 @@ from imgclas import paths
 from imgclas.optimizers import customSGD, customAdam, customAdamW
 
 
+
 def create_dir_tree():
     """
     Create directory tree structure
@@ -30,6 +31,22 @@ def create_dir_tree():
             print('creating {}'.format(d))
             os.makedirs(d)
 
+def create_folds_tree(num_folds):
+    """
+    Create directory tree structure
+    """
+    chpt_dir = paths.get_checkpoints_dir()
+    pred_dir = paths.get_predictions_dir()
+    
+    for i in range(num_folds):
+        chpt_fold_dir = f'{chpt_dir}/Fold-{i}'
+        pred_fold_dir = f'{pred_dir}/Fold-{i}'
+        if not os.path.isdir(chpt_fold_dir):
+            print('creating {}'.format(chpt_fold_dir))
+            os.makedirs(chpt_fold_dir)
+        if not os.path.isdir(pred_fold_dir):
+            print('creating {}'.format(pred_fold_dir))
+            os.makedirs(pred_fold_dir)
 
 def remove_empty_dirs():
     basedir = paths.get_base_dir()
@@ -101,7 +118,7 @@ def launch_tensorboard(port, logdir):
                      '--host', '0.0.0.0'])
 
 
-def get_callbacks(CONF, use_lr_decay=True):
+def get_callbacks(CONF, use_lr_decay=True, fold_iter=0):
     """
     Get a callback list to feed fit_generator.
     #TODO Use_remote callback needs proper configuration
@@ -151,10 +168,17 @@ def get_callbacks(CONF, use_lr_decay=True):
         calls.append(callbacks.EarlyStopping(patience=int(0.2 * CONF['training']['epochs'])))
 
     if CONF['training']['ckpt_freq'] is not None:
-        calls.append(callbacks.ModelCheckpoint(
-            os.path.join(paths.get_checkpoints_dir(), 'epoch-{epoch:02d}.hdf5'),
-            verbose=1,
-            period=max(1, int(CONF['training']['ckpt_freq'] * CONF['training']['epochs']))))
+        if CONF['training']['use_cross_validation']:
+            fold = f"Fold-{fold_iter}/"
+            calls.append(callbacks.ModelCheckpoint(
+                os.path.join(paths.get_checkpoints_dir(), fold+'epoch-{epoch:02d}.hdf5'),
+                verbose=1,
+                period=max(1, int(CONF['training']['ckpt_freq'] * CONF['training']['epochs']))))
+        else:
+            calls.append(callbacks.ModelCheckpoint(
+                os.path.join(paths.get_checkpoints_dir(), 'epoch-{epoch:02d}.hdf5'),
+                verbose=1,
+                period=max(1, int(CONF['training']['ckpt_freq'] * CONF['training']['epochs']))))
 
     if not calls:
         calls = None

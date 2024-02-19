@@ -45,7 +45,14 @@ def load_data_splits(splits_dir, im_dir, split_name='train'):
     y : Numpy array of int32
         Image label number
     """
-    if '{}.txt'.format(split_name) not in os.listdir(splits_dir):
+    
+    if "/" in split_name:
+        fold = split_name.split("/")[0]
+        file = split_name.split("/")[1]
+        if '{}.txt'.format(file) not in os.listdir(splits_dir+"/"+fold):
+            raise ValueError("Invalid value for the split_name parameter: there is no `{}.txt` file in the `{}` "
+                             "directory.".format(split_name, splits_dir))
+    elif '{}.txt'.format(split_name) not in os.listdir(splits_dir):
         raise ValueError("Invalid value for the split_name parameter: there is no `{}.txt` file in the `{}` "
                          "directory.".format(split_name, splits_dir))
 

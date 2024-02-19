@@ -166,7 +166,7 @@ training:
 #           classes are very imbalanced although it can make training more unstable.
 
   use_validation:
-    value: True
+    value: False
     type: "bool"
     help: >
           Whether to use or not validation. If True you have to provide a `val.txt` file in the `splits` directory.
@@ -183,6 +183,12 @@ training:
     help: >
           Whether to use or not multiple workers to do preprocess data (ie. do data augmentation)
           faster during training. Disable it if your computing resources are scarce.
+          
+  use_cross_validation:
+    value: True
+    type: "bool"
+    help: > 
+          Whether to use or not cross validation. If True you have to provide a `dataset.txt` file in the `splits` directory.
 
 #####################################################
 #  Options about monitoring your training

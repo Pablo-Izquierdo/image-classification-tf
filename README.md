@@ -10,7 +10,8 @@ This work is an adaptation of the original [BrainGut-WineUp](https://alimenta365
 **Table of contents**
 1. [Notebooks content](#notebooks_content)
 2. [More info](#more-info)
-3. [Acknowledgements](#acknowledgments)
+3. [License](#license)
+4. [Acknowledgements](#acknowledgments)
 
 ## Notebooks content
 
@@ -37,9 +38,8 @@ You can have more info on how to interact directly with the module by examining 
    * [saliency maps ranking notebook](./notebooks/3.2.2-Saliency_ranking.ipynb): Visualize the saliency maps of the best and worst predicted images
 
 ## More info
-
-
-
+## License
+his work is licensed under the Creative Commons Attribution-NonCommercial-NoDerivs 4.0 International [https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.es](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.es)
 ## Acknowledgements
 
 

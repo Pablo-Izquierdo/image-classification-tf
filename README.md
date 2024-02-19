@@ -1,8 +1,5 @@
-DEEP Open Catalogue: Image classification
-=========================================
-
-[![Build Status](https://jenkins.indigo-datacloud.eu/buildStatus/icon?job=Pipeline-as-code/DEEP-OC-org/image-classification-tf/master)](https://jenkins.indigo-datacloud.eu/job/Pipeline-as-code/job/DEEP-OC-org/job/image-classification-tf/job/master/)
-
+Apple weight estimation from one view RGB images
+================================================
 
 **Author:** [Pablo Izquierdo](https://github.com/Pablo-Izquierdo) (CSIC)
 

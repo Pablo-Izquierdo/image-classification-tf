@@ -39,7 +39,7 @@ You can have more info on how to interact directly with the module by examining 
 
 ## More info
 ## License
-his work is licensed under the Creative Commons Attribution-NonCommercial-NoDerivs 4.0 International [https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.es](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.es)
+This work is licensed under the Creative Commons Attribution-NonCommercial-NoDerivs 4.0 International [https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.es](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.es)
 ## Acknowledgements
 
 

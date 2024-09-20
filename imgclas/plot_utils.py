@@ -55,6 +55,8 @@ def training_plots(conf, stats, show_val=True, show_ckpt=True):
 
     axs[0].set_xlabel('Epochs'), axs[0].set_title('Loss')
     axs[1].set_xlabel('Epochs'), axs[1].set_title('MAE')
+    axs[0].set_ylim([500,5000])
+    axs[1].set_ylim([15,55])
     axs[0].legend(loc='upper right')
 
 

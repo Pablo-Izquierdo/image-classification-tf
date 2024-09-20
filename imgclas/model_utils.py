@@ -25,7 +25,7 @@ from imgclas import paths, config, utils
 
 
 model_modes = {'DenseNet121': 'torch', 'DenseNet169': 'torch', 'DenseNet201': 'torch',
-               'InceptionResNetV2': 'tf', 'InceptionV3': 'tf', 'MobileNet': 'tf',
+               'InceptionResNetV2': 'tf', 'InceptionV3': 'tf', 'MobileNet': 'tf', 'MobileNetV2': 'tf', 'NASNetMobile': 'tf',
                'NASNetLarge': 'tf', 'NASNetMobile': 'tf', 'Xception': 'tf',
                'ResNet50': 'caffe', 'VGG16': 'caffe', 'VGG19': 'caffe'}
 
@@ -47,9 +47,10 @@ def create_model(CONF):
     x = base_model.output
     x = GlobalAveragePooling2D()(x)
     # x = Flatten()(x) #might work better on large dataset than GlobalAveragePooling https://github.com/keras-team/keras/issues/8470
-    x = Dropout(0.1)(x)
+    x = Dropout(0.8)(x)
     x = Dense(1024,
               activation='relu')(x)
+    x = Dropout(0.8)(x)
     predictions = Dense(1, activation='linear')(x) ### for regression
 
     # Full model
